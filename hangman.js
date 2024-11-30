@@ -110,28 +110,32 @@ function updateGuesses() {
 }
 // Update hangman picture based on number of incorrect guesses.
 function updateHangman() {
+    let imgPath = "./images/";
+
     switch (incorrectGuesses) {
         case 1:
-            hangmanPic.src = "./Hangman1.jpeg";
+            imgPath += "Hangman1.jpeg";
             break;
         case 2:
-            hangmanPic.src = "./Hangman2.jpeg";
+            imgPath += "Hangman2.jpeg";
             break;
         case 3:
-            hangmanPic.src = "./Hangman3.jpeg";
+            imgPath += "Hangman3.jpeg";
             break;
         case 4:
-            hangmanPic.src = "./Hangman4.jpeg";
+            imgPath += "Hangman4.jpeg";
             break;
 		case 5:
-			hangmanPic.src = "./Hangman5.jpg";
+            imgPath += "Hangman5.jpg";
 			break;
         case 6:
-            hangmanPic.src = "./Hangman6.jpg";
+            imgPath += "Hangman6.jpg";
             break;
         default:
-            hangmanPic.src = "./Hangman0.jpeg";
+            imgPath += "Hangman0.jpeg";
     }
+
+    hangmanPic.src = imgPath;
 }
 // Function for checking if the guessed letter is in the title. If it is, check win condition.
 const guessLetter = function(letter) {
