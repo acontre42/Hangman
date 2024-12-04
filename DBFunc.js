@@ -37,7 +37,7 @@ export async function getNumMovies() {
 }
 
 export async function getRandomMovie(max) {
-    if (isNaN(max) || !max ) {
+    if (!max || isNaN(max)) {
         max = await getNumMovies();
     }
 
