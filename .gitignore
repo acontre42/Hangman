@@ -1,2 +1,3 @@
-#ignore all txt files
+#ignore all txt and env files
 *.txt
+*.env
