@@ -3,35 +3,49 @@
 // HTML Elements
 const replayButton = document.getElementById("replayButton");
 const alphabetButtons = document.getElementsByClassName("letters");
-const guessButton = document.getElementById("guessSubmit");
+const guessSubmit = document.getElementById("guessSubmit");
 const hangmanPic = document.getElementById("hangmanPic");
 const blankTitle = document.getElementById("blankTitle");
 const gameOverText = document.getElementById("gameOverText");
 const gameOverDiv = document.getElementById("gameOverDiv");
+const gameOverButton = document.getElementById("gameOverButton");
 // Variables
 const punctuation = ['.', ',', '!', '?', ':', '&'];
-const movieTitles = ["Detective Pikachu", "It Follows", "Orphan: First Kill",
-                    "Charlie & the Chocolate Factory", "Pride & Prejudice",
-                   "Lady Bird", "Tangled", "The Great Gatsby", "Emma.",
-                   "Mamma Mia!", "Why Him?", "Monsters, Inc.", "I, Tonya",
-                    "House of Wax", "The Parent Trap", "Mrs. Doubtfire",
-                    "The Devil Wears Prada", "Jurassic Park", "Moulin Rouge!"];
 let usedLetters = [];
-const min = 0;
-const max = movieTitles.length;
 const MAX_GUESSES = 6; // Game ends after 6 incorrect guesses.
-let titleIndex;
+let movie;
+let titleIndex = -1;
 let chosenTitle;
 let guessingBlank = ""; // Shows up on page under hangman pic
 let incorrectGuesses = 0;
 
 //SET UP STUFF
-// Chooses random movie from movies array. Assigns titleIndex and chosenTitle.
-function getRandomMovieTitle() {
-    titleIndex = Math.random() * (max - min) + min;
-    titleIndex = Math.floor(titleIndex);
-    chosenTitle = movieTitles[titleIndex];
-    //console.log(titleIndex, chosenTitle);
+// Get random movie from server. Assign movie info to movie-related variables and elements.
+async function getRandomMovieTitle() {
+    try {
+        const res = await fetch('/api/getrandom', {
+            method: 'GET'
+        });
+        const data = await res.json();
+        movie = data;
+    }
+    catch(err) {
+        console.log(err);
+    }
+
+    if (movie) {
+        titleIndex = movie.index;
+        chosenTitle = movie.title
+        console.log(titleIndex, chosenTitle);
+    }
+    else {
+        console.log("ERROR: couldn't get movie");
+        // TO DO: what to do if error
+    }
+    
+    document.getElementById("titleP").innerText = `${movie.title} (${movie.year})`;
+    document.getElementById("wikiLink").href = movie.wiki_link;
+    document.getElementById("imdbLink").href = movie.imdb_link;
 }
 // Sets up underscores/punctuation for guessing blank.
 function setUpGuessingBlank() {
@@ -59,44 +73,48 @@ function setUpAlphabetButtons(replay = false) {
         }
     }
 }
-// Makes submit button functional.
-function setUpGuessButton() {
-    guessSubmit.addEventListener("click", function() {
-        let guessInput = document.getElementById("guessInput");
-        let submittedGuess = guessInput.value;
-        console.log(submittedGuess);
-        if (submittedGuess.toUpperCase() == chosenTitle.toUpperCase()) {
-            guessingBlank = chosenTitle;
-            blankTitle.innerHTML = guessingBlank;
-            endGame(true);
-        }
-        else {
-            updateGuesses();
-        }
-        guessInput.value = "";
-    });
-}
-// Makes replay button functional. Chooses new movie title. Resets buttons and game variables.
-// Hides game over screen after being clicked.
-function setUpReplayButton() {
-    replayButton.addEventListener("click", function() {
-        let currentTitleIndex = titleIndex;
-        do {
-            getRandomMovieTitle();
-        } while (currentTitleIndex === titleIndex); // Avoid immediate repeat.
-
-        usedLetters = [];
-        incorrectGuesses = 0;
-        guessingBlank = "";
-
-        setUpAlphabetButtons(true);
+// Compare submitted guess to chosenTitle. End game if right, update guesses if wrong.
+guessSubmit.addEventListener("click", function() {
+    let guessInput = document.getElementById("guessInput");
+    let submittedGuess = guessInput.value;
+    console.log(submittedGuess);
+    if (submittedGuess.toUpperCase() == chosenTitle.toUpperCase()) {
+        guessingBlank = chosenTitle;
         blankTitle.innerHTML = guessingBlank;
-        setUpGuessingBlank();
-        updateHangman();
+        endGame(true);
+    }
+    else {
+        updateGuesses();
+    }
+    guessInput.value = "";
+});
+// Chooses new movie title. Resets alphabet buttons and game variables.
+// Hides movieInfoDiv again, show guessDiv.
+replayButton.addEventListener("click", async function() {
+    let currentTitleIndex = titleIndex;
+    do {
+        await getRandomMovieTitle();
+    } while (currentTitleIndex === titleIndex); // Avoid immediate repeat.
 
-        gameOverDiv.style.display = "none";
-    });
-}
+    usedLetters = [];
+    incorrectGuesses = 0;
+    guessingBlank = "";
+
+    setUpAlphabetButtons(true);
+    blankTitle.innerHTML = guessingBlank;
+    setUpGuessingBlank();
+    updateHangman();
+
+    let hiddenElems = document.getElementsByClassName("showAfter");
+    for (let elem of hiddenElems) {
+        elem.style.display = "none";
+    };
+    document.getElementById("guessDiv").style.display = "block";
+});
+// Closes game over screen.
+gameOverButton.addEventListener("click", function() {
+    gameOverDiv.style.display = "none";
+});
 
 // GAME STUFF
 // When player guesses wrong, increment incorrectGuesses and update hangman image.
@@ -183,23 +201,31 @@ const letterClick = function(event) {
     }
 }
 // Displays game over screen with replay button and appropriate outcome text.
+// Display movieInfoDiv, hide guessDiv.
 function endGame(win = false) {
     let text;
+    let buttonText;
     if (win) {
         text = "YOU WIN";
+        buttonText = "Yay!";
         gameOverText.style.color = "green";
     }
     else {
         text = "YOU LOSE";
+        buttonText = "Boo!";
         gameOverText.style.color = "red";
     }
+    let hiddenElems = document.getElementsByClassName("showAfter");
+    for (let elem of hiddenElems) {
+        elem.style.display = "block";
+    };
     gameOverText.innerText = text;
     gameOverDiv.style.display = "block";
+    gameOverButton.innerText = buttonText;
+    document.getElementById("guessDiv").style.display = "none";
 }
 
 // MAIN
-getRandomMovieTitle();
+await getRandomMovieTitle();
 setUpGuessingBlank();
 setUpAlphabetButtons();
-setUpGuessButton();
-setUpReplayButton();

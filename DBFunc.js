@@ -1,32 +1,17 @@
-/*
-const path = require('path');
-require('dotenv').config({
-    override: true,
-    path: path.join(__dirname, 'development.env')
-});
-*/
-import path from 'path'; // *** 
+"use strict";
+import path from 'path';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-console.log(__dirname);
+//console.log(__filename);
+//console.log(__dirname);
 dotenv.config({
     override: true,
     path: path.join(__dirname, 'development.env')
 });
 
-//const {Client, Pool} = require('pg');
-/*
-const pool = new Pool({
-    user: process.env.USER,
-    host: process.env.HOST,
-    database: process.env.DATABASE,
-    password: process.env.PASSWORD,
-    port: process.env.PORT
-});
-*/
-import pg from 'pg'; // ***
+import pg from 'pg';
 const pool = new pg.Pool({
     user: process.env.USER,
     host: process.env.HOST,

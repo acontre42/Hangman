@@ -52,6 +52,10 @@ button {
     padding-left: 25%;
 }
 
+.showAfter {
+    display: none;
+}
+
 #gameOverDiv {
     display: none;
     background-color:#0e0d0d50;
@@ -74,7 +78,7 @@ button {
     text-shadow: 2px 2px 2px #3a3939;
 }
 
-#replayButton {
+#gameOverButton {
     position: absolute;
     top: 70%;
     left: 45%;
