@@ -47,7 +47,7 @@ async function getRandomMovieTitle() {
     document.getElementById("wikiLink").href = movie.wiki_link;
     document.getElementById("imdbLink").href = movie.imdb_link;
 }
-// Sets up underscores/punctuation for guessing blank.
+// Sets up underscores/punctuation for guessing blank. There should be a space between each character.
 function setUpGuessingBlank() {
     for (let i = 0; i < chosenTitle.length; i++) {
         if (chosenTitle[i] == " ") {
@@ -77,7 +77,7 @@ function setUpAlphabetButtons(replay = false) {
 guessSubmit.addEventListener("click", function() {
     let guessInput = document.getElementById("guessInput");
     let submittedGuess = guessInput.value;
-    console.log(submittedGuess);
+    //console.log(submittedGuess);
     if (submittedGuess.toUpperCase() == chosenTitle.toUpperCase()) {
         guessingBlank = chosenTitle;
         blankTitle.innerHTML = guessingBlank;
@@ -88,20 +88,21 @@ guessSubmit.addEventListener("click", function() {
     }
     guessInput.value = "";
 });
-// Chooses new movie title. Resets alphabet buttons and game variables.
+// Gets new movie title. Resets alphabet buttons and game variables.
 // Hides movieInfoDiv again, show guessDiv.
 replayButton.addEventListener("click", async function() {
     let currentTitleIndex = titleIndex;
     do {
         await getRandomMovieTitle();
+        // TO DO: what to do if error?
     } while (currentTitleIndex === titleIndex); // Avoid immediate repeat.
 
     usedLetters = [];
     incorrectGuesses = 0;
     guessingBlank = "";
+    blankTitle.innerHTML = guessingBlank;
 
     setUpAlphabetButtons(true);
-    blankTitle.innerHTML = guessingBlank;
     setUpGuessingBlank();
     updateHangman();
 
@@ -117,7 +118,7 @@ gameOverButton.addEventListener("click", function() {
 });
 
 // GAME STUFF
-// When player guesses wrong, increment incorrectGuesses and update hangman image.
+// When player guesses wrong, increment incorrectGuesses and update hangman image. If max guesses, end game.
 function updateGuesses() {
     incorrectGuesses++;
     updateHangman();
@@ -155,13 +156,14 @@ function updateHangman() {
 
     hangmanPic.src = imgPath;
 }
-// Function for checking if the guessed letter is in the title. If it is, check win condition.
+// Function for checking if the guessed letter is in the title. 
+// If it is, generate new guessingBlank & check win condition. If not, update guesses.
 const guessLetter = function(letter) {
     let upperTitle = chosenTitle.toUpperCase();
-    let newBlank = "";
-    let simplifiedBlank = ""; // Used for checking against chosenTitle
+    let newBlank = "";  // New version of guessingBlank
+    let simplifiedBlank = ""; // Used for checking against chosenTitle (w/o &nbsp;)
     if (upperTitle.includes(letter)){
-        for (let i = 0; i < chosenTitle.length; i++){
+        for (let i = 0; i < chosenTitle.length; i++) {
             if (upperTitle[i] == letter || punctuation.includes(chosenTitle[i]) || usedLetters.includes(upperTitle[i])){
                 newBlank += chosenTitle[i] + "&nbsp;";
                 simplifiedBlank += chosenTitle[i];
@@ -170,26 +172,23 @@ const guessLetter = function(letter) {
                 newBlank += "&nbsp;" + "&nbsp;";
                 simplifiedBlank += " ";
             }
-            else {
+            else { // not a blank space, punctuation, or revealed letter
                 newBlank += "_" + "&nbsp;" + "&nbsp;";
             }
         }
         guessingBlank = newBlank;
         blankTitle.innerHTML = guessingBlank;
 
-        if (!guessingBlank.includes('_')) {
-            if (chosenTitle === simplifiedBlank) {
-                //console.log(simplifiedBlank);
-                endGame(true);
-            }
+        if (!guessingBlank.includes('_') && chosenTitle === simplifiedBlank) {
+            endGame(true);
         }
     }
     else {
-        //console.log(`${chosenTitle} does not have ${letter}`);
         updateGuesses();
     }
 }
-// Function for when alphabet letters are clicked. Add letter to usedLetters and remove functionality from button.
+// Function for when alphabet letters are clicked. 
+// Add letter to usedLetters, guess letter, remove functionality from button, change display of buttons.
 const letterClick = function(event) {
     let x = event.target.innerHTML;
     if (usedLetters.includes(x) === false) {
@@ -200,8 +199,8 @@ const letterClick = function(event) {
         event.target.removeEventListener("click", letterClick);
     }
 }
-// Displays game over screen with replay button and appropriate outcome text.
-// Display movieInfoDiv, hide guessDiv.
+// Displays game over screen with appropriate outcome text.
+// Display movieInfoDiv, hide guessDiv. Disable alphabet buttons.
 function endGame(win = false) {
     let text;
     let buttonText;
@@ -215,14 +214,21 @@ function endGame(win = false) {
         buttonText = "Boo!";
         gameOverText.style.color = "red";
     }
+
     let hiddenElems = document.getElementsByClassName("showAfter");
     for (let elem of hiddenElems) {
         elem.style.display = "block";
     };
+
     gameOverText.innerText = text;
-    gameOverDiv.style.display = "block";
     gameOverButton.innerText = buttonText;
+    gameOverDiv.style.display = "block";
     document.getElementById("guessDiv").style.display = "none";
+
+    for (let i = 0; i < alphabetButtons.length; i++) {
+        alphabetButtons[i].removeEventListener("click", letterClick);
+        alphabetButtons[i].style.cursor = "default";
+    }
 }
 
 // MAIN
