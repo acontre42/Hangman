@@ -232,6 +232,7 @@ function endGame(win = false) {
 }
 
 // MAIN
+console.log("inside hangman");
 await getRandomMovieTitle();
 setUpGuessingBlank();
 setUpAlphabetButtons();

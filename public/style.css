@@ -2,6 +2,18 @@ html {
     background-color:rgb(254, 251, 225);
 }
 
+header {
+    width: 100%;
+    border: 1px solid;
+    background-color: rgb(242, 235, 245);
+    margin: 0px;
+}
+
+header h1, header h2 {
+    margin: 0.5rem;
+    letter-spacing: 0.15rem;
+}
+
 h1, h2 {
     text-align: center;
 }

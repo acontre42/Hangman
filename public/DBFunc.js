@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 //console.log(__dirname);
 dotenv.config({
     override: true,
-    path: path.join(__dirname, 'development.env')
+    path: path.join(__dirname, '../development.env')
 });
 
 import pg from 'pg';
@@ -30,7 +30,6 @@ export async function getNumMovies() {
             throw new Error('Empty database');
         }
         else {
-            //console.log(numMovies);
             return numMovies;
         }
     }
@@ -60,7 +59,6 @@ export async function getRandomMovie(max) {
         ON movie.id = imdb_link.movie_id
         WHERE id = ${randomId}`;
         let {rows} = await client.query(queryString);
-        //console.log(randomId, rows[0]['title'], rows[0]['year'], rows[0]['wiki_link'], rows[0]['im_link']);
 
         return {
             index: randomId,
