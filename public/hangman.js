@@ -19,8 +19,8 @@ let chosenTitle;
 let guessingBlank = ""; // Shows up on page under hangman pic
 let incorrectGuesses = 0;
 
-//SET UP STUFF
-// Get random movie from server. Assign movie info to movie-related variables and elements.
+// +++ SET UP FUNCTIONS +++
+// Get random movie from server. Assign movie info to movie-related variables and elements. Return true/false.
 async function getRandomMovieTitle() {
     try {
         const res = await fetch('/api/getrandom', {
@@ -37,15 +37,15 @@ async function getRandomMovieTitle() {
         titleIndex = movie.index;
         chosenTitle = movie.title
         console.log(titleIndex, chosenTitle);
+        document.getElementById("titleP").innerText = `${movie.title} (${movie.year})`;
+        document.getElementById("wikiLink").href = movie.wiki_link;
+        document.getElementById("imdbLink").href = movie.imdb_link;
+        return true; // ***
     }
     else {
         console.log("ERROR: couldn't get movie");
-        // TO DO: what to do if error
+        return false; // ***
     }
-    
-    document.getElementById("titleP").innerText = `${movie.title} (${movie.year})`;
-    document.getElementById("wikiLink").href = movie.wiki_link;
-    document.getElementById("imdbLink").href = movie.imdb_link;
 }
 // Sets up underscores/punctuation for guessing blank. There should be a space between each character.
 function setUpGuessingBlank() {
@@ -73,30 +73,8 @@ function setUpAlphabetButtons(replay = false) {
         }
     }
 }
-// Compare submitted guess to chosenTitle. End game if right, update guesses if wrong.
-guessSubmit.addEventListener("click", function() {
-    let guessInput = document.getElementById("guessInput");
-    let submittedGuess = guessInput.value;
-    //console.log(submittedGuess);
-    if (submittedGuess.toUpperCase() == chosenTitle.toUpperCase()) {
-        guessingBlank = chosenTitle;
-        blankTitle.innerHTML = guessingBlank;
-        endGame(true);
-    }
-    else {
-        updateGuesses();
-    }
-    guessInput.value = "";
-});
-// Gets new movie title. Resets alphabet buttons and game variables.
-// Hides movieInfoDiv again, show guessDiv.
-replayButton.addEventListener("click", async function() {
-    let currentTitleIndex = titleIndex;
-    do {
-        await getRandomMovieTitle();
-        // TO DO: what to do if error?
-    } while (currentTitleIndex === titleIndex); // Avoid immediate repeat.
-
+// Resets alphabet buttons and game variables. Hides movieInfoDiv again, show guessDiv.
+function resetGamePieces() {
     usedLetters = [];
     incorrectGuesses = 0;
     guessingBlank = "";
@@ -111,13 +89,56 @@ replayButton.addEventListener("click", async function() {
         elem.style.display = "none";
     };
     document.getElementById("guessDiv").style.display = "block";
-});
-// Closes game over screen.
-gameOverButton.addEventListener("click", function() {
-    gameOverDiv.style.display = "none";
-});
+}
+// Gets new movie title while avoiding repeats. If successful, reset game variables. Else, alert error.
+async function replay() {
+    let currentTitleIndex = titleIndex;
+    let gotMovie; // ***
+    do {
+        gotMovie = await getRandomMovieTitle();
+    } while (gotMovie && currentTitleIndex === titleIndex); // Avoid immediate repeat.
+    
+    if (gotMovie) { // ***
+        resetGamePieces();
+    }
+    else {
+        alert('ERROR: There was a problem loading a movie title. Please try again.');
+    }
+};
+// If successful getting movie from server, set up game as normal. Else, display error on screen.
+function setUp(success = false) {
+    console.log("success: " + success); // ***
+    if (success === true) {
+        setUpAlphabetButtons();
+        setUpGuessingBlank();
+        guessSubmit.addEventListener("click", checkGuess);
+        replayButton.addEventListener("click", replay);
+        // Closes game over screen.
+        gameOverButton.addEventListener("click", function() {
+            gameOverDiv.style.display = "none";
+        });
+    }
+    else {
+        blankTitle.innerText = "ERROR: There was a problem loading the movie title.";
+    }
+}
 
-// GAME STUFF
+// +++ GAME FLOW FUNCTIONS +++
+// Compare submitted guess to chosenTitle. End game if right, update guesses if wrong.
+function checkGuess() {
+    let guessInput = document.getElementById("guessInput");
+    let submittedGuess = guessInput.value;
+    if (submittedGuess.toUpperCase() == chosenTitle.toUpperCase()) {
+        guessingBlank = chosenTitle;
+        blankTitle.innerHTML = guessingBlank;
+        endGame(true);
+    }
+    else {
+        updateGuesses();
+    }
+
+    guessInput.value = "";
+};
 // When player guesses wrong, increment incorrectGuesses and update hangman image. If max guesses, end game.
 function updateGuesses() {
     incorrectGuesses++;
@@ -231,8 +252,7 @@ function endGame(win = false) {
     }
 }
 
-// MAIN
+// MAIN CODE
 console.log("inside hangman");
-await getRandomMovieTitle();
-setUpGuessingBlank();
-setUpAlphabetButtons();
+let dbSuccess = await getRandomMovieTitle(); // ***
+setUp(dbSuccess);
