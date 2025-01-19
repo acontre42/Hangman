@@ -40,11 +40,11 @@ async function getRandomMovieTitle() {
         document.getElementById("titleP").innerText = `${movie.title} (${movie.year})`;
         document.getElementById("wikiLink").href = movie.wiki_link;
         document.getElementById("imdbLink").href = movie.imdb_link;
-        return true; // ***
+        return true;
     }
     else {
         console.log("ERROR: couldn't get movie");
-        return false; // ***
+        return false;
     }
 }
 // Sets up underscores/punctuation for guessing blank. There should be a space between each character.
@@ -93,12 +93,12 @@ function resetGamePieces() {
 // Gets new movie title while avoiding repeats. If successful, reset game variables. Else, alert error.
 async function replay() {
     let currentTitleIndex = titleIndex;
-    let gotMovie; // ***
+    let gotMovie;
     do {
         gotMovie = await getRandomMovieTitle();
     } while (gotMovie && currentTitleIndex === titleIndex); // Avoid immediate repeat.
     
-    if (gotMovie) { // ***
+    if (gotMovie) { 
         resetGamePieces();
     }
     else {
@@ -107,7 +107,6 @@ async function replay() {
 };
 // If successful getting movie from server, set up game as normal. Else, display error on screen.
 function setUp(success = false) {
-    console.log("success: " + success); // ***
     if (success === true) {
         setUpAlphabetButtons();
         setUpGuessingBlank();
@@ -253,6 +252,5 @@ function endGame(win = false) {
 }
 
 // MAIN CODE
-console.log("inside hangman");
-let dbSuccess = await getRandomMovieTitle(); // ***
+let dbSuccess = await getRandomMovieTitle();
 setUp(dbSuccess);

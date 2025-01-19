@@ -4,8 +4,6 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-//console.log(__filename);
-//console.log(__dirname);
 dotenv.config({
     override: true,
     path: path.join(__dirname, '../development.env')
@@ -23,8 +21,8 @@ const pool = new pg.Pool({
 export async function getNumMovies() {
     const client = await pool.connect();
     try {
-        let queryString = 'SELECT COUNT(title) AS numMovies FROM movie';
-        let {rows} = await client.query(queryString);
+        const queryString = 'SELECT COUNT(title) AS numMovies FROM movie;';
+        const {rows} = await client.query(queryString);
         const numMovies = parseInt(rows[0]['nummovies']);
         if (numMovies < 1) {
             throw new Error('Empty database');
@@ -50,18 +48,22 @@ export async function getRandomMovie(max) {
     const client = await pool.connect();
     try {
         let randomId = Math.floor(Math.random() * max) + 1;
-        let queryString = 
-        `SELECT title, year, wiki_link, im_link 
+        const queryString =
+        `SELECT id, title, year, wiki_link, im_link 
         FROM movie 
         JOIN wikipedia_link
         ON movie.id = wikipedia_link.movie_id
         JOIN imdb_link
         ON movie.id = imdb_link.movie_id
-        WHERE id = ${randomId}`;
-        let {rows} = await client.query(queryString);
+        WHERE id = $1;`;
+        const query = {
+            text: queryString,
+            values: [randomId]
+        };
+        const {rows} = await client.query(query);
 
         return {
-            index: randomId,
+            index: rows[0]['id'],
             title: rows[0]['title'],
             year: rows[0]['year'],
             wiki_link: rows[0]['wiki_link'],
@@ -80,8 +82,8 @@ export async function getRandomMovie(max) {
 export async function getAllMovies() {
     const client = await pool.connect();
     try {
-        let queryString = 'SELECT * FROM movie';
-        let {rows} = await pool.query(queryString);
+        const queryString = 'SELECT * FROM movie;';
+        const {rows} = await pool.query(queryString);
         let allMovies = [];
         rows.forEach((row) => {
             allMovies.push({
@@ -109,8 +111,11 @@ export async function getMovieById(id) {
 
     const client = await pool.connect();
     try {
-        const queryString = `SELECT * FROM movie WHERE id = ${id}`;
-        let {rows} = await pool.query(queryString);
+        const query = {
+            text: 'SELECT * FROM movie WHERE id = $1;',
+            values: [id]
+        };
+        const {rows} = await pool.query(query);
         if (!rows[0]) {
             console.log(`ERROR: no movie with id ${id}`);
             return null;
